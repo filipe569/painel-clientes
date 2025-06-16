@@ -124,6 +124,11 @@ def exportar():
     ws.title = "Clientes"
 
     ws.append(["ID", "Nome", "Telefone", "Login", "Senha", "Status", "Data Cadastro", "Data Vencimento"])
+@app.route('/novo')
+def novo():
+    if 'usuario' not in session:
+        return redirect('/')
+    return render_template('adicionar.html')
 
     for c in clientes:
         ws.append([
