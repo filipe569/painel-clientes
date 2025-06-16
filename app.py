@@ -1,106 +1,31 @@
-from flask import Flask, render_template, request, redirect, session, send_file
-import sqlite3
-from datetime import datetime
-import io
-from openpyxl import Workbook
+from flask import Flask, render_template, request, redirect, session
+import os
 
 app = Flask(__name__)
 app.secret_key = 'segredo'
 
-# === BANCO DE DADOS ===
-def get_db_connection():
-    conn = sqlite3.connect('clientes.db')
-    conn.row_factory = sqlite3.Row
-    return conn
+clientes = []
 
-def criar_tabela():
-    conn = get_db_connection()
-    conn.execute('''CREATE TABLE IF NOT EXISTS clientes (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        nome TEXT,
-        telefone TEXT,
-        login TEXT,
-        senha TEXT,
-        status TEXT,
-        data_cadastro TEXT,
-        data_vencimento TEXT
-    )''')
-    conn.commit()
-    conn.close()
-
-criar_tabela()
-
-# === ROTAS ===
-@app.route('/', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        usuario = request.form['usuario']
-        senha = request.form['senha']
-        if usuario == 'admin' and senha == 'admin':
-            session['usuario'] = usuario
-            return redirect('/dashboard')
+@app.route('/')
+def index():
     return render_template('login.html')
 
-@app.route('/dashboard')
-def dashboard():
-    if 'usuario' not in session:
-        return redirect('/')
-    conn = get_db_connection()
-
-    filtro = request.args.get('filtro', '').lower()
-    status_filtro = request.args.get('status', '')
-    vencimento_filtro = request.args.get('vencimento', '')
-
-    query = "SELECT * FROM clientes WHERE 1=1"
-    params = []
-
-    if filtro:
-        query += " AND (LOWER(nome) LIKE ? OR telefone LIKE ?)"
-        params += [f"%{filtro}%", f"%{filtro}%"]
-
-    if status_filtro:
-        query += " AND status = ?"
-        params.append(status_filtro)
-
-    if vencimento_filtro:
-        query += " AND data_vencimento <= ?"
-        params.append(vencimento_filtro)
-
-    clientes = conn.execute(query, params).fetchall()
-    conn.close()
-
-    return render_template('dashboard.html', clientes=clientes, filtro=filtro,
-                           status_filtro=status_filtro, vencimento_filtro=vencimento_filtro)
-
-@app.route('/adicionar', methods=['POST'])
-def adicionar():
-    if 'usuario' not in session:
-        return redirect('/')
-    nome = request.form['nome']
-    telefone = request.form['telefone']
-    login = request.form['login']
+@app.route('/login', methods=['POST'])
+def login():
+    usuario = request.form['usuario']
     senha = request.form['senha']
-    status = request.form['status']
-    data_cadastro = datetime.now().strftime('%Y-%m-%d')
-    data_vencimento = request.form['data_vencimento']
-
-    conn = get_db_connection()
-    conn.execute("""
-        INSERT INTO clientes
-        (nome, telefone, login, senha, status, data_cadastro, data_vencimento)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-    """, (nome, telefone, login, senha, status, data_cadastro, data_vencimento))
-    conn.commit()
-    conn.close()
-    return redirect('/dashboard')
+    if usuario == 'admin' and senha == 'admin':
+        session['usuario'] = usuario
+        return redirect('/dashboard')
+    return 'Login inválido'
 
 @app.route('/logout')
 def logout():
     session.pop('usuario', None)
     return redirect('/')
 
-@app.route('/exportar_excel')
-def exportar_excel():
+@app.route('/dashboard')
+def dashboard():
     if 'usuario' not in session:
         return redirect('/')
 
@@ -108,43 +33,48 @@ def exportar_excel():
     status_filtro = request.args.get('status', '')
     vencimento_filtro = request.args.get('vencimento', '')
 
-    conn = get_db_connection()
-    query = "SELECT * FROM clientes WHERE 1=1"
-    params = []
-
+    filtrados = clientes
     if filtro:
-        query += " AND (LOWER(nome) LIKE ? OR telefone LIKE ?)"
-        params += [f"%{filtro}%", f"%{filtro}%"]
-
+        filtrados = [c for c in filtrados if filtro in c['nome'].lower() or filtro in c['telefone']]
     if status_filtro:
-        query += " AND status = ?"
-        params.append(status_filtro)
-
+        filtrados = [c for c in filtrados if c['status'] == status_filtro]
     if vencimento_filtro:
-        query += " AND data_vencimento <= ?"
-        params.append(vencimento_filtro)
+        filtrados = [c for c in filtrados if c['data_vencimento'] == vencimento_filtro]
 
-    clientes = conn.execute(query, params).fetchall()
-    conn.close()
+    return render_template('dashboard.html', clientes=filtrados,
+                           filtro=filtro, status_filtro=status_filtro, vencimento_filtro=vencimento_filtro)
 
-    wb = Workbook()
-    ws = wb.active
-    ws.title = "Clientes"
-    ws.append(["ID", "Nome", "Telefone", "Login", "Senha", "Status", "Data Cadastro", "Data Vencimento"])
+@app.route('/adicionar', methods=['POST'])
+def adicionar():
+    nome = request.form['nome']
+    telefone = request.form['telefone']
+    login_user = request.form['login']
+    senha_user = request.form['senha']
+    status = request.form['status']
+    data_vencimento = request.form['data_vencimento']
+    data_cadastro = request.form['data_cadastro']
 
-    for c in clientes:
-        ws.append([c['id'], c['nome'], c['telefone'], c['login'], c['senha'], c['status'], c['data_cadastro'], c['data_vencimento']])
+    cliente = {
+        'id': len(clientes) + 1,
+        'nome': nome,
+        'telefone': telefone,
+        'login': login_user,
+        'senha': senha_user,
+        'status': status,
+        'data_cadastro': data_cadastro,
+        'data_vencimento': data_vencimento
+    }
+    clientes.append(cliente)
+    return redirect('/dashboard')
 
-    file_stream = io.BytesIO()
-    wb.save(file_stream)
-    file_stream.seek(0)
+@app.route('/excluir/<int:id>', methods=['POST'])
+def excluir(id):
+    global clientes
+    clientes = [c for c in clientes if c['id'] != id]
+    return redirect('/dashboard')
 
-    return send_file(
-        file_stream,
-        as_attachment=True,
-        download_name='relatorio_clientes.xlsx',
-        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    )
+import os
 
-if __name__ == '__main__':
-    app.run(debug=True)
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
