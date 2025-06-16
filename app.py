@@ -62,16 +62,28 @@ def dashboard():
     status_filtro = request.args.get('status', '')
     vencimento_filtro = request.args.get('vencimento', '')
 
+    atualizar_status_vencidos()  # Verifica e atualiza status antes de exibir
+
     filtrados = clientes
+
     if filtro:
-        filtrados = [c for c in filtrados if filtro in c['nome'].lower() or filtro in c['telefone']]
+        filtrados = [
+            c for c in filtrados
+            if filtro in c.get('nome', '').lower()
+            or filtro in c.get('telefone', '')
+            or filtro in c.get('login', '').lower()
+        ]
+
     if status_filtro:
-        filtrados = [c for c in filtrados if c['status'] == status_filtro]
+        filtrados = [c for c in filtrados if c.get('status', '') == status_filtro]
     if vencimento_filtro:
-        filtrados = [c for c in filtrados if c['data_vencimento'] == vencimento_filtro]
-             
+        filtrados = [c for c in filtrados if c.get('data_vencimento', '') == vencimento_filtro]
+
+    salvar_clientes(clientes)  # Salva a atualização no arquivo
+
     return render_template('dashboard.html', clientes=filtrados,
                            filtro=filtro, status_filtro=status_filtro, vencimento_filtro=vencimento_filtro)
+
 
 @app.route('/novo')
 def novo():
