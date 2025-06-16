@@ -8,6 +8,19 @@ app.secret_key = 'segredo'
 # === Arquivo de dados ===
 DATA_FILE = 'clientes.json'
 
+from datetime import datetime
+
+def atualizar_status_vencidos():
+    hoje = datetime.today().date()
+    for cliente in clientes:
+        try:
+            vencimento = datetime.strptime(cliente.get('data_vencimento', ''), '%Y-%m-%d').date()
+            if cliente.get('status') == 'ativo' and vencimento < hoje:
+                cliente['status'] = 'vencido'
+        except ValueError:
+            continue  # Ignora datas inválidas
+
+
 def carregar_clientes():
     if os.path.exists(DATA_FILE):
         with open(DATA_FILE, 'r', encoding='utf-8') as f:
