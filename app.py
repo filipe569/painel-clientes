@@ -1,12 +1,27 @@
-from flask import Flask, render_template, request, redirect, session, send_file
-import os
-import io
+from flask import Flask, render_template, request, redirect, session, send_file, jsonify
+import os, json, io
 from openpyxl import Workbook
+from datetime import datetime, timedelta
 
 app = Flask(__name__)
 app.secret_key = 'segredo'
 
-clientes = []
+# === Funções de persistência ===
+DATA_FILE = 'clientes.json'
+
+def carregar_clientes():
+    if os.path.exists(DATA_FILE):
+        with open(DATA_FILE, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    return []
+
+def salvar_clientes(clientes):
+    with open(DATA_FILE, 'w', encoding='utf-8') as f:
+        json.dump(clientes, f, ensure_ascii=False, indent=4)
+
+clientes = carregar_clientes()
+
+# === Rotas principais ===
 
 @app.route('/')
 def index():
@@ -48,31 +63,55 @@ def dashboard():
 
 @app.route('/adicionar', methods=['POST'])
 def adicionar():
-    nome = request.form['nome']
-    telefone = request.form['telefone']
-    login_user = request.form['login']
-    senha_user = request.form['senha']
-    status = request.form['status']
-    data_vencimento = request.form['data_vencimento']
-    data_cadastro = request.form['data_cadastro']
-
+    novo_id = max([c['id'] for c in clientes], default=0) + 1
     cliente = {
-        'id': len(clientes) + 1,
-        'nome': nome,
-        'telefone': telefone,
-        'login': login_user,
-        'senha': senha_user,
-        'status': status,
-        'data_cadastro': data_cadastro,
-        'data_vencimento': data_vencimento
+        'id': novo_id,
+        'nome': request.form['nome'],
+        'telefone': request.form['telefone'],
+        'login': request.form['login'],
+        'senha': request.form['senha'],
+        'status': request.form['status'],
+        'data_cadastro': request.form['data_cadastro'],
+        'data_vencimento': request.form['data_vencimento']
     }
     clientes.append(cliente)
+    salvar_clientes(clientes)
     return redirect('/dashboard')
 
 @app.route('/excluir/<int:id>', methods=['POST'])
 def excluir(id):
     global clientes
     clientes = [c for c in clientes if c['id'] != id]
+    salvar_clientes(clientes)
+    return redirect('/dashboard')
+
+@app.route('/editar/<int:id>')
+def editar(id):
+    cliente = next((c for c in clientes if c['id'] == id), None)
+    return render_template('editar.html', cliente=cliente)
+
+@app.route('/atualizar/<int:id>', methods=['POST'])
+def atualizar(id):
+    for cliente in clientes:
+        if cliente['id'] == id:
+            cliente['nome'] = request.form['nome']
+            cliente['telefone'] = request.form['telefone']
+            cliente['login'] = request.form['login']
+            cliente['senha'] = request.form['senha']
+            cliente['status'] = request.form['status']
+            cliente['data_cadastro'] = request.form['data_cadastro']
+            cliente['data_vencimento'] = request.form['data_vencimento']
+            break
+    salvar_clientes(clientes)
+    return redirect('/dashboard')
+
+@app.route('/alterar_status/<int:id>', methods=['POST'])
+def alterar_status(id):
+    for cliente in clientes:
+        if cliente['id'] == id:
+            cliente['status'] = 'desativado' if cliente['status'] == 'ativo' else 'ativo'
+            break
+    salvar_clientes(clientes)
     return redirect('/dashboard')
 
 @app.route('/exportar')
