@@ -4,12 +4,16 @@
     <meta charset="UTF-8" />
     <title>Dashboard</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h2>Clientes</h2>
-        <a href="/logout" class="btn btn-secondary">Sair</a>
+        <div>
+            <a href="/exportar" class="btn btn-outline-success">Exportar Excel</a>
+            <a href="/logout" class="btn btn-secondary">Sair</a>
+        </div>
     </div>
 
     <!-- Formulário para adicionar cliente -->
@@ -35,18 +39,15 @@
             </select>
         </div>
         <div class="col-md-2">
-            <input type="date" name="data_cadastro" placeholder="Data Cadastro" class="form-control" required />
+            <input type="date" name="data_cadastro" class="form-control" required />
         </div>
         <div class="col-md-2">
-            <input type="date" name="data_vencimento" placeholder="Data Vencimento" class="form-control" required />
+            <input type="date" name="data_vencimento" class="form-control" required />
         </div>
         <div class="col-md-1 d-grid">
             <button type="submit" class="btn btn-success">Adicionar</button>
         </div>
     </form>
-<div class="mb-3">
-    <a href="/exportar" class="btn btn-outline-success">Exportar para Excel</a>
-</div>
 
     <!-- Filtros -->
     <form method="GET" action="/dashboard" class="row g-3 mb-3">
@@ -69,8 +70,11 @@
         </div>
     </form>
 
+    <!-- Gráfico de status -->
+    <canvas id="graficoStatus" width="400" height="100"></canvas>
+
     <!-- Tabela de clientes -->
-    <table class="table table-striped">
+    <table class="table table-striped mt-4">
         <thead>
             <tr>
                 <th>Nome</th>
@@ -88,11 +92,25 @@
                 <td>{{ cliente.nome }}</td>
                 <td>{{ cliente.telefone }}</td>
                 <td>{{ cliente.login }}</td>
-                <td>{{ cliente.status }}</td>
+                <td>
+                    {% set vencimento = cliente.data_vencimento %}
+                    {% set dias_restantes = (vencimento | todatetime('%Y-%m-%d') - now()).days %}
+                    <span class="badge 
+                        {% if cliente.status == 'ativo' %}bg-success
+                        {% elif cliente.status == 'vencido' %}bg-danger
+                        {% elif cliente.status == 'desativado' %}bg-secondary
+                        {% else %}bg-light text-dark{% endif %}">
+                        {{ cliente.status }}
+                    </span>
+                </td>
                 <td>{{ cliente.data_cadastro }}</td>
                 <td>{{ cliente.data_vencimento }}</td>
-                <td>
-                    <form method="POST" action="/excluir/{{ cliente.id }}" onsubmit="return confirm('Tem certeza que deseja excluir este cliente?');">
+                <td class="d-flex gap-1">
+                    <form method="POST" action="/alterar_status/{{ cliente.id }}">
+                        <button type="submit" class="btn btn-warning btn-sm">Status</button>
+                    </form>
+                    <a href="/editar/{{ cliente.id }}" class="btn btn-primary btn-sm">Editar</a>
+                    <form method="POST" action="/excluir/{{ cliente.id }}" onsubmit="return confirm('Excluir?');">
                         <button type="submit" class="btn btn-danger btn-sm">Excluir</button>
                     </form>
                 </td>
@@ -104,5 +122,26 @@
         </tbody>
     </table>
 </div>
+
+<script>
+    // Geração do gráfico
+    const ctx = document.getElementById('graficoStatus').getContext('2d');
+    const data = {
+        labels: ['Ativo', 'Vencido', 'Desativado'],
+        datasets: [{
+            label: 'Status dos Clientes',
+            data: [
+                {{ clientes|selectattr('status', 'equalto', 'ativo')|list|length }},
+                {{ clientes|selectattr('status', 'equalto', 'vencido')|list|length }},
+                {{ clientes|selectattr('status', 'equalto', 'desativado')|list|length }}
+            ],
+            backgroundColor: ['#198754', '#dc3545', '#6c757d']
+        }]
+    };
+    new Chart(ctx, {
+        type: 'bar',
+        data: data,
+    });
+</script>
 </body>
 </html>
