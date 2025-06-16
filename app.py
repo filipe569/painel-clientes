@@ -1,12 +1,11 @@
-from flask import Flask, render_template, request, redirect, session, send_file, jsonify
+from flask import Flask, render_template, request, redirect, session, send_file
 import os, json, io
 from openpyxl import Workbook
-from datetime import datetime, timedelta
 
 app = Flask(__name__)
 app.secret_key = 'segredo'
 
-# === Funções de persistência ===
+# === Arquivo de dados ===
 DATA_FILE = 'clientes.json'
 
 def carregar_clientes():
@@ -61,6 +60,12 @@ def dashboard():
     return render_template('dashboard.html', clientes=filtrados,
                            filtro=filtro, status_filtro=status_filtro, vencimento_filtro=vencimento_filtro)
 
+@app.route('/novo')
+def novo():
+    if 'usuario' not in session:
+        return redirect('/')
+    return render_template('adicionar.html')
+
 @app.route('/adicionar', methods=['POST'])
 def adicionar():
     novo_id = max([c['id'] for c in clientes], default=0) + 1
@@ -75,13 +80,6 @@ def adicionar():
         'data_vencimento': request.form['data_vencimento']
     }
     clientes.append(cliente)
-    salvar_clientes(clientes)
-    return redirect('/dashboard')
-
-@app.route('/excluir/<int:id>', methods=['POST'])
-def excluir(id):
-    global clientes
-    clientes = [c for c in clientes if c['id'] != id]
     salvar_clientes(clientes)
     return redirect('/dashboard')
 
@@ -105,6 +103,13 @@ def atualizar(id):
     salvar_clientes(clientes)
     return redirect('/dashboard')
 
+@app.route('/excluir/<int:id>', methods=['POST'])
+def excluir(id):
+    global clientes
+    clientes = [c for c in clientes if c['id'] != id]
+    salvar_clientes(clientes)
+    return redirect('/dashboard')
+
 @app.route('/alterar_status/<int:id>', methods=['POST'])
 def alterar_status(id):
     for cliente in clientes:
@@ -118,34 +123,28 @@ def alterar_status(id):
 def exportar():
     if 'usuario' not in session:
         return redirect('/')
+    try:
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Clientes"
+        ws.append(["ID", "Nome", "Telefone", "Login", "Senha", "Status", "Data Cadastro", "Data Vencimento"])
+        for c in clientes:
+            ws.append([
+                c['id'], c['nome'], c['telefone'], c['login'],
+                c['senha'], c['status'], c['data_cadastro'], c['data_vencimento']
+            ])
+        stream = io.BytesIO()
+        wb.save(stream)
+        stream.seek(0)
 
-    wb = Workbook()
-    ws = wb.active
-    ws.title = "Clientes"
-
-    ws.append(["ID", "Nome", "Telefone", "Login", "Senha", "Status", "Data Cadastro", "Data Vencimento"])
-@app.route('/novo')
-def novo():
-    if 'usuario' not in session:
-        return redirect('/')
-    return render_template('adicionar.html')
-
-    for c in clientes:
-        ws.append([
-            c['id'], c['nome'], c['telefone'], c['login'],
-            c['senha'], c['status'], c['data_cadastro'], c['data_vencimento']
-        ])
-
-    stream = io.BytesIO()
-    wb.save(stream)
-    stream.seek(0)
-
-    return send_file(
-        stream,
-        as_attachment=True,
-        download_name="clientes.xlsx",
-        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    )
+        return send_file(
+            stream,
+            as_attachment=True,
+            download_name="clientes.xlsx",
+            mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+    except Exception as e:
+        return f"Erro ao exportar: {str(e)}", 500
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
