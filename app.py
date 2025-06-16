@@ -192,7 +192,10 @@ def alterar_status(id):
 # [Mantenha todas as outras rotas existentes...]
 
 if __name__ == "__main__":
-    # Executa a verificação de vencidos ao iniciar
-    atualizar_status_vencidos()
-    port = int(os.environ.get("PORT", 10000))
-    app.run(debug=True, host="0.0.0.0", port=port)
+    # Garante que o template existe
+    if not os.path.exists('templates/login.html'):
+        os.makedirs('templates', exist_ok=True)
+        with open('templates/login.html', 'w') as f:
+            f.write("<h1>Página de Login</h1>")  # Conteúdo mínimo
+
+    app.run(host='0.0.0.0', port=10000)
