@@ -1,0 +1,32 @@
+[
+    {
+        "id": 1,
+        "nome": "João Silva",
+        "telefone": "11999999999",
+        "login": "joao",
+        "senha": "1234",
+        "status": "ativo",
+        "data_cadastro": "2025-06-01",
+        "data_vencimento": "2025-06-18"
+    },
+    {
+        "id": 2,
+        "nome": "Maria Oliveira",
+        "telefone": "21988888888",
+        "login": "maria",
+        "senha": "abcd",
+        "status": "vencido",
+        "data_cadastro": "2025-05-10",
+        "data_vencimento": "2025-06-10"
+    },
+    {
+        "id": 3,
+        "nome": "Carlos Lima",
+        "telefone": "31977777777",
+        "login": "carlos",
+        "senha": "senha123",
+        "status": "desativado",
+        "data_cadastro": "2025-06-05",
+        "data_vencimento": "2025-06-25"
+    }
+]
