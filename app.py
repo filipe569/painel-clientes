@@ -56,7 +56,9 @@ def dashboard():
         filtrados = [c for c in filtrados if c['status'] == status_filtro]
     if vencimento_filtro:
         filtrados = [c for c in filtrados if c['data_vencimento'] == vencimento_filtro]
-
+     if filtro:
+        filtrados = [c for c in filtrados if filtro in c['login'].lower() or filtro in c['login']]
+         
     return render_template('dashboard.html', clientes=filtrados,
                            filtro=filtro, status_filtro=status_filtro, vencimento_filtro=vencimento_filtro)
 
