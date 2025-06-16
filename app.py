@@ -78,3 +78,38 @@ import os
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
+
+from flask import send_file
+import io
+from openpyxl import Workbook
+
+@app.route('/exportar')
+def exportar():
+    if 'usuario' not in session:
+        return redirect('/')
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Clientes"
+
+    # Cabeçalhos
+    ws.append(["ID", "Nome", "Telefone", "Login", "Senha", "Status", "Data Cadastro", "Data Vencimento"])
+
+    # Dados
+    for c in clientes:
+        ws.append([
+            c['id'], c['nome'], c['telefone'], c['login'],
+            c['senha'], c['status'], c['data_cadastro'], c['data_vencimento']
+        ])
+
+    # Salva em memória
+    stream = io.BytesIO()
+    wb.save(stream)
+    stream.seek(0)
+
+    return send_file(
+        stream,
+        as_attachment=True,
+        download_name="clientes.xlsx",
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
