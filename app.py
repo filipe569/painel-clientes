@@ -1,69 +1,25 @@
-from flask import Flask, render_template, request, redirect, session, send_file, flash
+from flask import Flask, render_template, request, redirect, session, send_file
 import os, json, io
 from openpyxl import Workbook
-from datetime import datetime
-from werkzeug.security import generate_password_hash, check_password_hash
-import logging
-from logging.handlers import RotatingFileHandler
-from dotenv import load_dotenv
 
-# Configurações iniciais
-load_dotenv()
 app = Flask(__name__)
-app.secret_key = os.getenv('SECRET_KEY', 'segredo-temporario')
-
-# Configuração de logging
-log_handler = RotatingFileHandler('app.log', maxBytes=100000, backupCount=3)
-log_handler.setFormatter(logging.Formatter(
-    '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
-))
-app.logger.addHandler(log_handler)
-app.logger.setLevel(logging.INFO)
+app.secret_key = 'segredo'
 
 # === Arquivo de dados ===
 DATA_FILE = 'clientes.json'
 
-# === Funções melhoradas ===
+from datetime import datetime
 
 def atualizar_status_vencidos():
-    """Função 5: Atualização automática de status vencidos (melhorada)"""
-    hoje = datetime.now().date()
-    clientes_alterados = []
-    
+    hoje = datetime.today().date()
     for cliente in clientes:
         try:
-            if cliente.get('status') in ['ativo', 'renovado']:
-                vencimento = datetime.strptime(
-                    cliente.get('data_vencimento', ''), '%Y-%m-%d'
-                ).date()
-                
-                if vencimento < hoje:
-                    status_anterior = cliente['status']
-                    cliente['status'] = 'vencido'
-                    
-                    # Registrar histórico
-                    if 'historico_status' not in cliente:
-                        cliente['historico_status'] = []
-                    
-                    cliente['historico_status'].append({
-                        'data': hoje.strftime('%Y-%m-%d'),
-                        'de': status_anterior,
-                        'para': 'vencido',
-                        'por': 'sistema'
-                    })
-                    
-                    clientes_alterados.append(cliente['id'])
-                    app.logger.info(f"Cliente {cliente['id']} marcado como vencido")
+            vencimento = datetime.strptime(cliente.get('data_vencimento', ''), '%Y-%m-%d').date()
+            if cliente.get('status') == 'ativo' and vencimento < hoje:
+                cliente['status'] = 'vencido'
+        except ValueError:
+            continue  # Ignora datas inválidas
 
-        except (KeyError, ValueError) as e:
-            app.logger.warning(f"Erro ao verificar vencimento do cliente {cliente.get('id')}: {str(e)}")
-            continue
-
-    if clientes_alterados:
-        salvar_clientes(clientes)
-        app.logger.info(f"Clientes atualizados: {len(clientes_alterados)}")
-    
-    return clientes_alterados
 
 def carregar_clientes():
     if os.path.exists(DATA_FILE):
@@ -77,119 +33,143 @@ def salvar_clientes(clientes):
 
 clientes = carregar_clientes()
 
-# === Rotas principais (com as melhorias) ===
+# === Rotas principais ===
 
-@app.route('/exportar')
-def exportar():
-    """Função 3: Exportação para Excel (melhorada)"""
+@app.route('/')
+def index():
+    return render_template('login.html')
+
+@app.route('/login', methods=['POST'])
+def login():
+    usuario = request.form['usuario']
+    senha = request.form['senha']
+    if usuario == 'admin' and senha == 'admin':
+        session['usuario'] = usuario
+        return redirect('/dashboard')
+    return 'Login inválido'
+
+@app.route('/logout')
+def logout():
+    session.pop('usuario', None)
+    return redirect('/')
+
+@app.route('/dashboard')
+def dashboard():
     if 'usuario' not in session:
-        flash('Acesso não autorizado', 'error')
         return redirect('/')
 
-    try:
-        # Obter parâmetros de filtro
-        filtro = request.args.get('filtro', '').lower()
-        status_filtro = request.args.get('status', '')
-        
-        # Aplicar filtros
-        dados_exportar = clientes
-        if filtro:
-            dados_exportar = [c for c in dados_exportar if filtro in c.get('nome', '').lower()]
-        if status_filtro:
-            dados_exportar = [c for c in dados_exportar if c.get('status') == status_filtro]
+    filtro = request.args.get('filtro', '').lower()
+    status_filtro = request.args.get('status', '')
+    vencimento_filtro = request.args.get('vencimento', '')
 
-        # Criar arquivo Excel
-        wb = Workbook()
-        ws = wb.active
-        ws.title = "Clientes"
-        
-        # Cabeçalhos (sem senha por segurança)
-        ws.append(["ID", "Nome", "Telefone", "Login", "Status", "Data Cadastro", "Data Vencimento", "Dias Restantes"])
-        
-        # Dados
-        hoje = datetime.now().date()
-        for cliente in dados_exportar:
-            vencimento = datetime.strptime(cliente['data_vencimento'], '%Y-%m-%d').date()
-            dias_restantes = (vencimento - hoje).days
-            
-            ws.append([
-                cliente['id'],
-                cliente['nome'],
-                cliente['telefone'],
-                cliente['login'],
-                cliente['status'],
-                cliente['data_cadastro'],
-                cliente['data_vencimento'],
-                dias_restantes
-            ])
+    atualizar_status_vencidos()  # Verifica e atualiza status antes de exibir
 
-        # Configurar download
-        buffer = io.BytesIO()
-        wb.save(buffer)
-        buffer.seek(0)
-        
-        nome_arquivo = f"clientes_exportados_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
-        
-        return send_file(
-            buffer,
-            as_attachment=True,
-            download_name=nome_arquivo,
-            mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        )
+    filtrados = clientes
 
-    except Exception as e:
-        app.logger.error(f'Erro na exportação: {str(e)}', exc_info=True)
-        flash('Erro ao gerar relatório de exportação', 'error')
-        return redirect('/dashboard')
+    if filtro:
+        filtrados = [
+            c for c in filtrados
+            if filtro in c.get('nome', '').lower()
+            or filtro in c.get('telefone', '')
+            or filtro in c.get('login', '').lower()
+        ]
+
+    if status_filtro:
+        filtrados = [c for c in filtrados if c.get('status', '') == status_filtro]
+    if vencimento_filtro:
+        filtrados = [c for c in filtrados if c.get('data_vencimento', '') == vencimento_filtro]
+
+    salvar_clientes(clientes)  # Salva a atualização no arquivo
+
+    return render_template('dashboard.html', clientes=filtrados,
+                           filtro=filtro, status_filtro=status_filtro, vencimento_filtro=vencimento_filtro)
+
+
+@app.route('/novo')
+def novo():
+    if 'usuario' not in session:
+        return redirect('/')
+    return render_template('adicionar.html')
+
+@app.route('/adicionar', methods=['POST'])
+def adicionar():
+    novo_id = max([c['id'] for c in clientes], default=0) + 1
+    cliente = {
+        'id': novo_id,
+        'nome': request.form['nome'],
+        'telefone': request.form['telefone'],
+        'login': request.form['login'],
+        'senha': request.form['senha'],
+        'status': request.form['status'],
+        'data_cadastro': request.form['data_cadastro'],
+        'data_vencimento': request.form['data_vencimento']
+    }
+    clientes.append(cliente)
+    salvar_clientes(clientes)
+    return redirect('/dashboard')
+
+@app.route('/editar/<int:id>')
+def editar(id):
+    cliente = next((c for c in clientes if c['id'] == id), None)
+    return render_template('editar.html', cliente=cliente)
+
+@app.route('/atualizar/<int:id>', methods=['POST'])
+def atualizar(id):
+    for cliente in clientes:
+        if cliente['id'] == id:
+            cliente['nome'] = request.form['nome']
+            cliente['telefone'] = request.form['telefone']
+            cliente['login'] = request.form['login']
+            cliente['senha'] = request.form['senha']
+            cliente['status'] = request.form['status']
+            cliente['data_cadastro'] = request.form['data_cadastro']
+            cliente['data_vencimento'] = request.form['data_vencimento']
+            break
+    salvar_clientes(clientes)
+    return redirect('/dashboard')
+
+@app.route('/excluir/<int:id>', methods=['POST'])
+def excluir(id):
+    global clientes
+    clientes = [c for c in clientes if c['id'] != id]
+    salvar_clientes(clientes)
+    return redirect('/dashboard')
 
 @app.route('/alterar_status/<int:id>', methods=['POST'])
 def alterar_status(id):
-    """Função 4: Atualização de status (melhorada)"""
+    for cliente in clientes:
+        if cliente['id'] == id:
+            cliente['status'] = 'desativado' if cliente['status'] == 'ativo' else 'ativo'
+            break
+    salvar_clientes(clientes)
+    return redirect('/dashboard')
+
+@app.route('/exportar')
+def exportar():
     if 'usuario' not in session:
-        flash('Acesso não autorizado', 'error')
         return redirect('/')
-
     try:
-        cliente = next((c for c in clientes if c['id'] == id), None)
-        if not cliente:
-            flash('Cliente não encontrado', 'error')
-            return redirect('/dashboard')
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Clientes"
+        ws.append(["ID", "Nome", "Telefone", "Login", "Senha", "Status", "Data Cadastro", "Data Vencimento"])
+        for c in clientes:
+            ws.append([
+                c['id'], c['nome'], c['telefone'], c['login'],
+                c['senha'], c['status'], c['data_cadastro'], c['data_vencimento']
+            ])
+        stream = io.BytesIO()
+        wb.save(stream)
+        stream.seek(0)
 
-        # Lógica de transição de status
-        status_atual = cliente['status']
-        hoje = datetime.now().date()
-        vencimento = datetime.strptime(cliente['data_vencimento'], '%Y-%m-%d').date()
-
-        if status_atual == 'ativo':
-            novo_status = 'inativo' if vencimento >= hoje else 'vencido'
-        elif status_atual == 'inativo':
-            novo_status = 'ativo' if vencimento >= hoje else 'vencido'
-        else:  # vencido
-            novo_status = 'inativo'
-
-        # Registrar histórico
-        if 'historico_status' not in cliente:
-            cliente['historico_status'] = []
-        
-        cliente['historico_status'].append({
-            'data': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-            'de': status_atual,
-            'para': novo_status,
-            'por': session.get('usuario', 'sistema')
-        })
-
-        cliente['status'] = novo_status
-        salvar_clientes(clientes)
-        
-        flash(f'Status alterado de {status_atual} para {novo_status}', 'success')
-        return redirect('/dashboard')
-
+        return send_file(
+            stream,
+            as_attachment=True,
+            download_name="clientes.xlsx",
+            mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
     except Exception as e:
-        app.logger.error(f'Erro ao alterar status do cliente {id}: {str(e)}', exc_info=True)
-        flash('Erro ao atualizar status do cliente', 'error')
-        return redirect('/dashboard')
-
-# [Mantenha todas as outras rotas existentes...]
+        return f"Erro ao exportar: {str(e)}", 500
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
