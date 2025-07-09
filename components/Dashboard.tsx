@@ -38,27 +38,31 @@ const Dashboard: React.FC<DashboardProps> = ({ stats, onFilterSelect }) => {
   };
 
   return (
-    <div className="mb-8">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-        <StatCard title="Total de Clientes" value={stats.total} colorClass="text-brand-400" onClick={() => onFilterSelect(FilterOption.Todos)} />
-        <StatCard title="Ativos" value={stats.active} colorClass="text-green-500" onClick={() => onFilterSelect(FilterOption.Ativos)} />
-        <StatCard title="Vencidos" value={stats.expired} colorClass="text-red-500" onClick={() => onFilterSelect(FilterOption.Vencidos)} />
-        <StatCard title="Vencimento Próximo" value={stats.expiringSoon} colorClass="text-yellow-500" onClick={() => onFilterSelect(FilterOption.ProximoVencimento)} />
-      </div>
-      <Card className="flex flex-col md:flex-row items-center justify-between gap-4">
+    <div className="mb-6">
+      <Card className="flex flex-col md:flex-row items-center justify-between gap-4 bg-gradient-to-r from-brand-50 to-brand-100 dark:from-brand-900/20 dark:to-brand-800/20 border-brand-200 dark:border-brand-700">
         <div className="flex-1">
-          <h3 className="font-bold text-lg text-gray-900 dark:text-gray-100">Resumo Inteligente</h3>
+          <h3 className="font-bold text-lg text-brand-900 dark:text-brand-100 flex items-center">
+            <AiIcon className="w-5 h-5 mr-2 text-brand-500" />
+            Insights com IA
+          </h3>
           {isLoadingSummary ? (
-            <p className="text-gray-500 dark:text-gray-400 italic mt-1 animate-pulse">Gerando análise com IA...</p>
+            <div className="flex items-center mt-2">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-brand-500 mr-2"></div>
+              <p className="text-brand-600 dark:text-brand-400 italic animate-pulse">Analisando dados...</p>
+            </div>
           ) : summary ? (
-            <p className="text-gray-700 dark:text-gray-300 mt-1">{summary}</p>
+            <p className="text-brand-700 dark:text-brand-300 mt-2 leading-relaxed">{summary}</p>
           ) : (
-             <p className="text-gray-500 dark:text-gray-400 italic mt-1">Clique no botão para gerar um resumo da situação atual dos seus clientes usando IA.</p>
+             <p className="text-brand-600 dark:text-brand-400 italic mt-2">Obtenha insights inteligentes sobre sua carteira de clientes.</p>
           )}
         </div>
-        <Button onClick={handleGenerateSummary} disabled={isLoadingSummary}>
+        <Button 
+          onClick={handleGenerateSummary} 
+          disabled={isLoadingSummary}
+          className="bg-brand-600 hover:bg-brand-700 shadow-lg hover:shadow-xl transform hover:scale-105"
+        >
           <AiIcon className="mr-2" />
-          {isLoadingSummary ? 'Analisando...' : 'Gerar Análise IA'}
+          {isLoadingSummary ? 'Analisando...' : 'Gerar Insights'}
         </Button>
       </Card>
     </div>

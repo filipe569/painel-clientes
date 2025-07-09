@@ -6,6 +6,12 @@ import ClientTable from './components/ClientTable';
 import ClientGrid from './components/ClientGrid';
 import ClientFormModal from './components/ClientFormModal';
 import Dashboard from './components/Dashboard';
+import AnalyticsCard from './components/Analytics/AnalyticsCard';
+import RevenueChart from './components/Analytics/RevenueChart';
+import AutomationPanel from './components/Automation/AutomationPanel';
+import NotificationCenter from './components/Notifications/NotificationCenter';
+import QuickActionsPanel from './components/QuickActions/QuickActionsPanel';
+import BulkMessageModal from './components/BulkActions/BulkMessageModal';
 import LoginScreen from './components/LoginScreen';
 import SettingsModal from './components/SettingsModal';
 import HistoryModal from './components/HistoryModal';
@@ -20,6 +26,13 @@ import QuickAddModal from './components/QuickAddModal';
 import { ThemeProvider } from './hooks/useTheme';
 import ThemeToggle from './components/ThemeToggle';
 
+import { 
+  ChartBarIcon, 
+  CurrencyDollarIcon, 
+  UsersIcon, 
+  TrendingUpIcon,
+  ClockIcon 
+} from './components/icons';
 
 import Button from './components/ui/Button';
 import Input from './components/ui/Input';
@@ -36,6 +49,7 @@ const AppContent: React.FC<{ user: AuthUser }> = ({ user }) => {
   const [isHistoryModalOpen, setHistoryModalOpen] = useState(false);
   const [isCloudSyncModalOpen, setCloudSyncModalOpen] = useState(false);
   const [isQuickAddModalOpen, setQuickAddModalOpen] = useState(false);
+  const [isBulkMessageModalOpen, setBulkMessageModalOpen] = useState(false);
   const [isParsingClient, setIsParsingClient] = useState(false);
 
   const [clientToEdit, setClientToEdit] = useState<Partial<ClientWithStatus> | null>(null);
@@ -236,6 +250,10 @@ const AppContent: React.FC<{ user: AuthUser }> = ({ user }) => {
       }
   };
 
+  const handleBulkMessage = () => {
+    setBulkMessageModalOpen(true);
+  };
+
   // Drag and Drop Handlers
   const handleDragStart = (client: ClientWithStatus) => {
     setDraggedItem(client);
@@ -334,6 +352,56 @@ const AppContent: React.FC<{ user: AuthUser }> = ({ user }) => {
 
           <Dashboard stats={dashboardStats} onFilterSelect={setFilter} />
           
+          {/* Analytics Section */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <AnalyticsCard
+              title="Receita Mensal"
+              value={`R$ ${(dashboardStats.active * 89.90).toLocaleString()}`}
+              change={{ value: 12.5, type: 'increase', period: 'mês anterior' }}
+              icon={<CurrencyDollarIcon />}
+              color="green"
+            />
+            <AnalyticsCard
+              title="Taxa de Renovação"
+              value="87.3%"
+              change={{ value: 3.2, type: 'increase', period: 'mês anterior' }}
+              icon={<TrendingUpIcon />}
+              color="blue"
+            />
+            <AnalyticsCard
+              title="Novos Clientes"
+              value="23"
+              change={{ value: 8.1, type: 'increase', period: 'mês anterior' }}
+              icon={<UsersIcon />}
+              color="purple"
+            />
+            <AnalyticsCard
+              title="Tempo Médio"
+              value="4.2 meses"
+              icon={<ClockIcon />}
+              color="yellow"
+            />
+          </div>
+
+          {/* Modern Dashboard Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+            <div className="lg:col-span-2 space-y-6">
+              <RevenueChart clients={allClientsWithStatus} />
+              <AutomationPanel />
+            </div>
+            <div className="space-y-6">
+              <QuickActionsPanel
+                onAddClient={() => handleOpenModal()}
+                onExport={handleExport}
+                onQuickAdd={() => setQuickAddModalOpen(true)}
+                onBulkMessage={handleBulkMessage}
+                onBackup={() => setCloudSyncModalOpen(true)}
+                onSettings={() => setSettingsModalOpen(true)}
+              />
+              <NotificationCenter />
+            </div>
+          </div>
+
           <div className="bg-white/50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl p-4 mb-6">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-4 items-end">
                   <div className="lg:col-span-4">
@@ -517,6 +585,12 @@ const AppContent: React.FC<{ user: AuthUser }> = ({ user }) => {
       >
         <p>Você tem certeza que deseja renovar a assinatura de <strong>{clientToRenew?.nome}</strong> por 30 dias?</p>
       </ConfirmModal>
+
+      <BulkMessageModal
+        isOpen={isBulkMessageModalOpen}
+        onClose={() => setBulkMessageModalOpen(false)}
+        clients={allClientsWithStatus}
+      />
     </>
   );
 };
