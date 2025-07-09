@@ -57,7 +57,7 @@ const BulkMessageModal: React.FC<BulkMessageModalProps> = ({ isOpen, onClose, cl
       if (client.telefone) {
         const personalizedMessage = messageTemplate
           .replace(/\{\{nome\}\}/g, String(client.nome || ''))
-          .replace(/\{\{vencimento\}\}/g, new Date(client['vencimento'] + 'T00:00:00').toLocaleDateString('pt-BR'))
+          .replace(/\{\{vencimento\}\}/g, new Date(client.vencimento + 'T00:00:00').toLocaleDateString('pt-BR'))
           .replace(/\{\{servidor\}\}/g, String(client.servidor || ''))
           .replace(/\{\{login\}\}/g, String(client.login || ''));
 
