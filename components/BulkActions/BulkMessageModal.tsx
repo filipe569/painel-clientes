@@ -55,11 +55,17 @@ const BulkMessageModal: React.FC<BulkMessageModalProps> = ({ isOpen, onClose, cl
     
     selectedClientData.forEach(client => {
       if (client.telefone) {
+        // Explicitly declare local variables to avoid ReferenceError
+        const clientName = client.nome;
+        const clientVencimento = client.vencimento;
+        const clientServidor = client.servidor;
+        const clientLogin = client.login;
+        
         const personalizedMessage = messageTemplate
-          .replace(/\{\{nome\}\}/g, String(client.nome || ''))
-          .replace(/\{\{vencimento\}\}/g, new Date(client.vencimento + 'T00:00:00').toLocaleDateString('pt-BR'))
-          .replace(/\{\{servidor\}\}/g, String(client.servidor || ''))
-          .replace(/\{\{login\}\}/g, String(client.login || ''));
+          .replace(/\{\{nome\}\}/g, String(clientName || ''))
+          .replace(/\{\{vencimento\}\}/g, new Date(clientVencimento + 'T00:00:00').toLocaleDateString('pt-BR'))
+          .replace(/\{\{servidor\}\}/g, String(clientServidor || ''))
+          .replace(/\{\{login\}\}/g, String(clientLogin || ''));
 
         const phoneNumber = client.telefone.replace(/\D/g, '');
         const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(personalizedMessage)}`;
