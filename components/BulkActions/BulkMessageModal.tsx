@@ -54,6 +54,8 @@ const BulkMessageModal: React.FC<BulkMessageModalProps> = ({ isOpen, onClose, cl
     const selectedClientData = clients.filter(c => selectedClients.includes(c.id));
     
     selectedClientData.forEach(client => {
+      if (!client) return;
+      
       if (client.telefone) {
         const personalizedMessage = messageTemplate
           .replace(/\{\{nome\}\}/g, client.nome)
