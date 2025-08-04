@@ -11,7 +11,6 @@ import RevenueChart from './components/Analytics/RevenueChart';
 import AutomationPanel from './components/Automation/AutomationPanel';
 import NotificationCenter from './components/Notifications/NotificationCenter';
 import QuickActionsPanel from './components/QuickActions/QuickActionsPanel';
-import BulkMessageModal from './components/BulkActions/BulkMessageModal';
 import LoginScreen from './components/LoginScreen';
 import SettingsModal from './components/SettingsModal';
 import HistoryModal from './components/HistoryModal';
@@ -49,7 +48,6 @@ const AppContent: React.FC<{ user: AuthUser }> = ({ user }) => {
   const [isHistoryModalOpen, setHistoryModalOpen] = useState(false);
   const [isCloudSyncModalOpen, setCloudSyncModalOpen] = useState(false);
   const [isQuickAddModalOpen, setQuickAddModalOpen] = useState(false);
-  const [isBulkMessageModalOpen, setBulkMessageModalOpen] = useState(false);
   const [isParsingClient, setIsParsingClient] = useState(false);
 
   const [clientToEdit, setClientToEdit] = useState<Partial<ClientWithStatus> | null>(null);
@@ -250,9 +248,6 @@ const AppContent: React.FC<{ user: AuthUser }> = ({ user }) => {
       }
   };
 
-  const handleBulkMessage = () => {
-    setBulkMessageModalOpen(true);
-  };
 
   // Drag and Drop Handlers
   const handleDragStart = (client: ClientWithStatus) => {
@@ -394,7 +389,6 @@ const AppContent: React.FC<{ user: AuthUser }> = ({ user }) => {
                 onAddClient={() => handleOpenModal()}
                 onExport={handleExport}
                 onQuickAdd={() => setQuickAddModalOpen(true)}
-                onBulkMessage={handleBulkMessage}
                 onBackup={() => setCloudSyncModalOpen(true)}
                 onSettings={() => setSettingsModalOpen(true)}
               />
@@ -586,11 +580,6 @@ const AppContent: React.FC<{ user: AuthUser }> = ({ user }) => {
         <p>Você tem certeza que deseja renovar a assinatura de <strong>{clientToRenew?.nome}</strong> por 30 dias?</p>
       </ConfirmModal>
 
-      <BulkMessageModal
-        isOpen={isBulkMessageModalOpen}
-        onClose={() => setBulkMessageModalOpen(false)}
-        clients={allClientsWithStatus}
-      />
     </>
   );
 };

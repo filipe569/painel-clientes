@@ -16,7 +16,6 @@ interface QuickActionsProps {
   onAddClient: () => void;
   onExport: () => void;
   onQuickAdd: () => void;
-  onBulkMessage: () => void;
   onBackup: () => void;
   onSettings: () => void;
 }
@@ -25,7 +24,6 @@ const QuickActionsPanel: React.FC<QuickActionsProps> = ({
   onAddClient,
   onExport,
   onQuickAdd,
-  onBulkMessage,
   onBackup,
   onSettings
 }) => {
@@ -43,13 +41,6 @@ const QuickActionsPanel: React.FC<QuickActionsProps> = ({
       onClick: onQuickAdd,
       color: 'bg-purple-500 hover:bg-purple-600',
       description: 'Extrair dados com IA'
-    },
-    {
-      label: 'Mensagem em Massa',
-      icon: <WhatsAppIcon className="w-5 h-5" />,
-      onClick: onBulkMessage,
-      color: 'bg-green-500 hover:bg-green-600',
-      description: 'Enviar para múltiplos clientes'
     },
     {
       label: 'Exportar Dados',
