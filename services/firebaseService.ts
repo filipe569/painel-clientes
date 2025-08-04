@@ -31,7 +31,7 @@ const firebaseConfig = {
 
 
 // Verificação para a UI saber se a configuração foi feita.
-export const isFirebaseConfigured = firebaseConfig.apiKey && firebaseConfig.apiKey !== "AIzaSyAd-sLiDQwNONhmTblOEK83Z0P1str4MSk";
+export const isFirebaseConfigured = firebaseConfig.apiKey && firebaseConfig.apiKey !== "";
 
 let app: FirebaseApp | null = null;
 let db: Database | null = null;
