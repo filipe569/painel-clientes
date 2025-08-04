@@ -20,14 +20,13 @@ import { Client, HistoryEntry, AuthUser } from '../types';
 
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "AIzaSyDQp3vmJx5grYWdC6me-N-xfeqMjVPEnNI",
-  authDomain: "teste-c7cd2.firebaseapp.com",
-  databaseURL: "https://teste-c7cd2-default-rtdb.firebaseio.com",
-  projectId: "teste-c7cd2",
-  storageBucket: "teste-c7cd2.firebasestorage.app",
-  messagingSenderId: "621952606919",
-  appId: "1:621952606919:web:9cbd9140476dc4ed7954e2",
-  
+  apiKey: "AIzaSyAd-sLiDQwNONhmTblOEK83Z0P1str4MSk",
+  authDomain: "gerenciadorpro-37789.firebaseapp.com",
+  databaseURL: "https://gerenciadorpro-37789-default-rtdb.firebaseio.com",
+  projectId: "gerenciadorpro-37789",
+  storageBucket: "gerenciadorpro-37789.firebasestorage.app",
+  messagingSenderId: "625019706049",
+  appId: "1:625019706049:web:9e908621358e1210cb5240"
 };
 
 
