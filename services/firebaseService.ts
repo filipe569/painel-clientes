@@ -27,7 +27,7 @@ const firebaseConfig = {
   storageBucket: "teste-c7cd2.firebasestorage.app",
   messagingSenderId: "621952606919",
   appId: "1:621952606919:web:9cbd9140476dc4ed7954e2",
-  measurementId: "G-Q4MVEQTJXW"
+  
 };
 
 
