@@ -8,11 +8,11 @@ import ClientFormModal from './components/ClientFormModal';
 import Dashboard from './components/Dashboard';
 import AnalyticsCard from './components/Analytics/AnalyticsCard';
 import RevenueChart from './components/Analytics/RevenueChart';
-import NotificationCenter from './components/Notifications/NotificationCenter';
 import QuickActionsPanel from './components/QuickActions/QuickActionsPanel';
 import LoginScreen from './components/LoginScreen';
 import SettingsModal from './components/SettingsModal';
 import HistoryModal from './components/HistoryModal';
+import LoginHistoryModal from './components/LoginHistoryModal';
 import CloudSyncModal from './components/CloudSyncModal';
 import ConfirmModal from './components/ui/ConfirmModal';
 import { ToastProvider, useToast } from './components/ui/Toast';
@@ -21,6 +21,7 @@ import { onAuthChanged, logOut, getDataForUser, isFirebaseConfigured } from './s
 import SetupScreen from './components/SetupScreen';
 import { parseClientDataWithAI } from './services/geminiService';
 import QuickAddModal from './components/QuickAddModal';
+import WhatsAppIntegration from './components/WhatsApp/WhatsAppIntegration';
 import { ThemeProvider } from './hooks/useTheme';
 import ThemeToggle from './components/ThemeToggle';
 
@@ -34,7 +35,7 @@ import {
 
 import Button from './components/ui/Button';
 import Input from './components/ui/Input';
-import { AddIcon, SearchIcon, ExportIcon, LogoutIcon, AiIcon, SettingsIcon, HistoryIcon, CloudIcon, ErrorIcon, ViewGridIcon, ViewListIcon } from './components/icons';
+import { AddIcon, SearchIcon, ExportIcon, LogoutIcon, AiIcon, SettingsIcon, HistoryIcon, CloudIcon, ErrorIcon, ViewGridIcon, ViewListIcon, ClockIcon } from './components/icons';
 
 const APP_SETTINGS_KEY_PREFIX = 'app_manager_settings_';
 const DEFAULT_PANEL_TITLE = 'Gerenciador de Clientes Pro';
@@ -45,8 +46,10 @@ const AppContent: React.FC<{ user: AuthUser }> = ({ user }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSettingsModalOpen, setSettingsModalOpen] = useState(false);
   const [isHistoryModalOpen, setHistoryModalOpen] = useState(false);
+  const [isLoginHistoryModalOpen, setLoginHistoryModalOpen] = useState(false);
   const [isCloudSyncModalOpen, setCloudSyncModalOpen] = useState(false);
   const [isQuickAddModalOpen, setQuickAddModalOpen] = useState(false);
+  const [isWhatsAppModalOpen, setWhatsAppModalOpen] = useState(false);
   const [isParsingClient, setIsParsingClient] = useState(false);
 
   const [clientToEdit, setClientToEdit] = useState<Partial<ClientWithStatus> | null>(null);
@@ -87,9 +90,11 @@ const AppContent: React.FC<{ user: AuthUser }> = ({ user }) => {
                   panelTitle: parsed.panelTitle || DEFAULT_PANEL_TITLE,
                   logoUrl: parsed.logoUrl || '',
               };
+          whatsappConnected: parsed.whatsappConnected || false,
+          whatsappNumber: parsed.whatsappNumber || '',
           }
       } catch { /* Use default */ }
-      return { panelTitle: DEFAULT_PANEL_TITLE, logoUrl: '' };
+  return { panelTitle: DEFAULT_PANEL_TITLE, logoUrl: '', whatsappConnected: false, whatsappNumber: '' };
   });
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -325,6 +330,14 @@ const AppContent: React.FC<{ user: AuthUser }> = ({ user }) => {
             <div className="flex items-center gap-1">
                 <span className="text-sm text-gray-500 dark:text-gray-400 hidden sm:inline mr-2">{user.email}</span>
                 <ThemeToggle />
+                <Button onClick={() => setWhatsAppModalOpen(true)} variant="ghost" title="WhatsApp Integration">
+                    <span className="text-green-500">📱</span>
+                    <span className="hidden md:inline ml-2">WhatsApp</span>
+                </Button>
+                <Button onClick={() => setLoginHistoryModalOpen(true)} variant="ghost" title="Histórico de Logins">
+                    <ClockIcon className="w-5 h-5"/>
+                    <span className="hidden md:inline ml-2">Logins</span>
+                </Button>
                 <Button onClick={() => setCloudSyncModalOpen(true)} variant="ghost" title="Sincronização com a Nuvem">
                     <CloudIcon className="w-5 h-5"/>
                     <span className="hidden md:inline ml-2">Nuvem</span>
@@ -519,7 +532,6 @@ const AppContent: React.FC<{ user: AuthUser }> = ({ user }) => {
                           </Button>
                       </div>
                   </div>
-              )}
           </div>
         </div>
       </div>
@@ -541,6 +553,15 @@ const AppContent: React.FC<{ user: AuthUser }> = ({ user }) => {
       />
 
       <HistoryModal isOpen={isHistoryModalOpen} onClose={() => setHistoryModalOpen(false)} history={history} />
+
+      <LoginHistoryModal isOpen={isLoginHistoryModalOpen} onClose={() => setLoginHistoryModalOpen(false)} />
+
+      <WhatsAppIntegration 
+        isOpen={isWhatsAppModalOpen} 
+        onClose={() => setWhatsAppModalOpen(false)}
+        settings={settings}
+        onSettingsChange={setSettings}
+      />
 
       <CloudSyncModal 
         isOpen={isCloudSyncModalOpen} 

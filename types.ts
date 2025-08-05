@@ -39,13 +39,23 @@ export interface HistoryEntry {
   id: string;
   timestamp: string;
   clientName: string;
-  action: 'Criado' | 'Atualizado' | 'Excluído' | 'Renovado' | 'Sistema' | 'Anotado';
+  action: 'Criado' | 'Atualizado' | 'Excluído' | 'Renovado' | 'Sistema' | 'Anotado' | 'Login';
   details: string;
+}
+
+export interface LoginHistoryEntry {
+  id: string;
+  timestamp: string;
+  userEmail: string;
+  ipAddress?: string;
+  userAgent?: string;
 }
 
 export interface AppSettings {
     panelTitle: string;
     logoUrl: string;
+    whatsappConnected: boolean;
+    whatsappNumber?: string;
 }
 
 export interface GoogleFile {
