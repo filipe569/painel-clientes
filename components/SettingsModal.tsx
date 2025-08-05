@@ -4,6 +4,7 @@ import Button from './ui/Button';
 import Input from './ui/Input';
 import { TagIcon, PhotoIcon } from './icons';
 import { AppSettings } from '../types';
+import AutomationPanel from './Automation/AutomationPanel';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -53,6 +54,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                     placeholder="https://example.com/logo.png"
                 />
             </div>
+        </section>
+
+        {/* Automation Section */}
+        <section>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-2 mb-4">Automações</h3>
+          <AutomationPanel />
         </section>
 
         {/* Backup Section */}

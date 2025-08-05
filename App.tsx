@@ -8,7 +8,6 @@ import ClientFormModal from './components/ClientFormModal';
 import Dashboard from './components/Dashboard';
 import AnalyticsCard from './components/Analytics/AnalyticsCard';
 import RevenueChart from './components/Analytics/RevenueChart';
-import AutomationPanel from './components/Automation/AutomationPanel';
 import NotificationCenter from './components/Notifications/NotificationCenter';
 import QuickActionsPanel from './components/QuickActions/QuickActionsPanel';
 import LoginScreen from './components/LoginScreen';
@@ -382,7 +381,6 @@ const AppContent: React.FC<{ user: AuthUser }> = ({ user }) => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
             <div className="lg:col-span-2 space-y-6">
               <RevenueChart clients={allClientsWithStatus} />
-              <AutomationPanel />
             </div>
             <div className="space-y-6">
               <QuickActionsPanel

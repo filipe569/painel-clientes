@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { FilterOption } from '../types';
 import Card from './ui/Card';
 import Button from './ui/Button';
-import { AiIcon } from './icons';
+import { AiIcon, UsersIcon, ExclamationTriangleIcon, ClockIcon } from './icons';
 import { generateDashboardSummary } from '../services/geminiService';
 
 interface DashboardProps {
@@ -38,7 +38,44 @@ const Dashboard: React.FC<DashboardProps> = ({ stats, onFilterSelect }) => {
   };
 
   return (
-    <div className="mb-6">
+    <div className="mb-8">
+      {/* Client Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <Card className="text-center p-4">
+          <div className="flex items-center justify-center mb-2">
+            <UsersIcon className="w-8 h-8 text-blue-500" />
+          </div>
+          <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.total}</div>
+          <div className="text-sm text-gray-600 dark:text-gray-400">Total de Clientes</div>
+        </Card>
+        
+        <Card className="text-center p-4 cursor-pointer hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors" onClick={() => onFilterSelect(FilterOption.Ativos)}>
+          <div className="flex items-center justify-center mb-2">
+            <div className="w-8 h-8 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
+              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+            </div>
+          </div>
+          <div className="text-2xl font-bold text-green-600 dark:text-green-400">{stats.active}</div>
+          <div className="text-sm text-gray-600 dark:text-gray-400">Clientes Ativos</div>
+        </Card>
+        
+        <Card className="text-center p-4 cursor-pointer hover:bg-yellow-50 dark:hover:bg-yellow-900/20 transition-colors" onClick={() => onFilterSelect(FilterOption.ProximoVencimento)}>
+          <div className="flex items-center justify-center mb-2">
+            <ClockIcon className="w-8 h-8 text-yellow-500" />
+          </div>
+          <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{stats.expiringSoon}</div>
+          <div className="text-sm text-gray-600 dark:text-gray-400">Próximo Vencimento</div>
+        </Card>
+        
+        <Card className="text-center p-4 cursor-pointer hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors" onClick={() => onFilterSelect(FilterOption.Vencidos)}>
+          <div className="flex items-center justify-center mb-2">
+            <ExclamationTriangleIcon className="w-8 h-8 text-red-500" />
+          </div>
+          <div className="text-2xl font-bold text-red-600 dark:text-red-400">{stats.expired}</div>
+          <div className="text-sm text-gray-600 dark:text-gray-400">Clientes Vencidos</div>
+        </Card>
+      </div>
+
       <Card className="flex flex-col md:flex-row items-center justify-between gap-4 bg-gradient-to-r from-brand-50 to-brand-100 dark:from-brand-900/20 dark:to-brand-800/20 border-brand-200 dark:border-brand-700">
         <div className="flex-1">
           <h3 className="font-bold text-lg text-brand-900 dark:text-brand-100 flex items-center">
