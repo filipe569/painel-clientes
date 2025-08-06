@@ -70,10 +70,16 @@ const ClientRow: React.FC<ClientRowProps> = ({ client, onEdit, onDelete, onRenew
       return;
     }
 
-    const whatsappTab = window.open('', '_blank', 'noopener,noreferrer');
-    if (whatsappTab) {
-      whatsappTab.document.body.innerHTML = `<div style="font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; background-color: #1f2937; color: #d1d5db;">Gerando mensagem com IA para enviar no WhatsApp...</div>`;
-    } else {
+    let whatsappTab: Window | null = null;
+    try {
+      whatsappTab = window.open('', '_blank', 'noopener,noreferrer');
+      if (whatsappTab) {
+        whatsappTab.document.body.innerHTML = `<div style="font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; background-color: #1f2937; color: #d1d5db;">Gerando mensagem com IA para enviar no WhatsApp...</div>`;
+      } else {
+        showToast('error', 'Pop-up bloqueado. Por favor, habilite pop-ups para este site.');
+        return;
+      }
+    } catch (error) {
       showToast('error', 'Pop-up bloqueado. Por favor, habilite pop-ups para este site.');
       return;
     }
@@ -85,7 +91,9 @@ const ClientRow: React.FC<ClientRowProps> = ({ client, onEdit, onDelete, onRenew
       if (message && !message.includes("indisponível") && !message.includes("Não foi possível")) {
         const phoneNumber = client.telefone.replace(/\D/g, '');
         const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
-        whatsappTab.location.href = whatsappUrl;
+        if (whatsappTab) {
+          whatsappTab.location.href = whatsappUrl;
+        }
       } else {
         showToast('error', 'Não foi possível gerar a mensagem de lembrete.');
         if (whatsappTab) {

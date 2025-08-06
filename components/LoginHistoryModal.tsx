@@ -1,45 +1,48 @@
 import React, { useState, useEffect } from 'react';
 import Modal from './ui/Modal';
-import { LoginHistoryEntry } from '../types';
+import { LoginHistoryEntry, AuthUser } from '../types';
 import { ClockIcon, UserIcon } from './icons';
 
 interface LoginHistoryModalProps {
   isOpen: boolean;
   onClose: () => void;
+  user: AuthUser | null;
 }
 
-const LoginHistoryModal: React.FC<LoginHistoryModalProps> = ({ isOpen, onClose }) => {
+const LoginHistoryModal: React.FC<LoginHistoryModalProps> = ({ isOpen, onClose, user }) => {
   const [loginHistory, setLoginHistory] = useState<LoginHistoryEntry[]>([]);
 
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && user) {
       // Simular dados de histórico de login
       const mockHistory: LoginHistoryEntry[] = [
         {
           id: '1',
           timestamp: new Date().toISOString(),
-          userEmail: 'admin@exemplo.com',
+          userEmail: user.email || 'Usuário',
           ipAddress: '192.168.1.100',
           userAgent: 'Chrome 120.0.0.0'
         },
         {
           id: '2',
           timestamp: new Date(Date.now() - 3600000).toISOString(),
-          userEmail: 'admin@exemplo.com',
+          userEmail: user.email || 'Usuário',
           ipAddress: '192.168.1.100',
           userAgent: 'Chrome 120.0.0.0'
         },
         {
           id: '3',
           timestamp: new Date(Date.now() - 7200000).toISOString(),
-          userEmail: 'admin@exemplo.com',
+          userEmail: user.email || 'Usuário',
           ipAddress: '192.168.1.101',
           userAgent: 'Firefox 121.0'
         }
       ];
       setLoginHistory(mockHistory);
+    } else {
+      setLoginHistory([]);
     }
-  }, [isOpen]);
+  }, [isOpen, user]);
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Histórico de Logins">

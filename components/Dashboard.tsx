@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { FilterOption } from '../types';
 import Card from './ui/Card';
 import Button from './ui/Button';
-import { AiIcon, UsersIcon, ExclamationTriangleIcon, ClockIcon } from './icons';
+import { AiIcon, UsersIcon, ExclamationTriangleIcon, ClockIcon, CheckCircleIcon } from './icons';
 import { generateDashboardSummary } from '../services/geminiService';
 
 interface DashboardProps {
@@ -51,9 +51,7 @@ const Dashboard: React.FC<DashboardProps> = ({ stats, onFilterSelect }) => {
         
         <Card className="text-center p-4 cursor-pointer hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors" onClick={() => onFilterSelect(FilterOption.Ativos)}>
           <div className="flex items-center justify-center mb-2">
-            <div className="w-8 h-8 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
-              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-            </div>
+            <CheckCircleIcon className="w-8 h-8 text-green-500" />
           </div>
           <div className="text-2xl font-bold text-green-600 dark:text-green-400">{stats.active}</div>
           <div className="text-sm text-gray-600 dark:text-gray-400">Clientes Ativos</div>
