@@ -5,6 +5,7 @@ import Input from './ui/Input';
 import { TagIcon, PhotoIcon } from './icons';
 import { AppSettings } from '../types';
 import AutomationPanel from './Automation/AutomationPanel';
+import MercadoPagoIntegration from './MercadoPago/MercadoPagoIntegration';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -54,6 +55,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                     placeholder="https://example.com/logo.png"
                 />
             </div>
+        </section>
+
+        {/* MercadoPago Section */}
+        <section>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-2 mb-4">Mercado Pago</h3>
+          <MercadoPagoIntegration settings={settings} onUpdateSettings={onSettingsChange} />
         </section>
 
         {/* Automation Section */}
