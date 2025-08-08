@@ -1,20 +1,26 @@
 import React, { useState } from 'react';
-import { CreditCard, DollarSign, CheckCircle, AlertCircle, Settings, Copy, ExternalLink } from 'lucide-react';
+import Card from '../ui/Card';
+import Button from '../ui/Button';
+import Input from '../ui/Input';
+import { CheckCircleIcon, ExclamationTriangleIcon, SettingsIcon } from '../icons';
+import { AppSettings } from '../../types';
+import { useToast } from '../ui/Toast';
 
 interface MercadoPagoIntegrationProps {
-  settings: any;
-  onUpdateSettings: (settings: any) => void;
+  settings: AppSettings;
+  onUpdateSettings: (settings: AppSettings) => void;
 }
 
-export default function MercadoPagoIntegration({ settings, onUpdateSettings }: MercadoPagoIntegrationProps) {
+const MercadoPagoIntegration: React.FC<MercadoPagoIntegrationProps> = ({ settings, onUpdateSettings }) => {
   const [accessToken, setAccessToken] = useState(settings.mercadoPago?.accessToken || '');
   const [publicKey, setPublicKey] = useState(settings.mercadoPago?.publicKey || '');
   const [isConnecting, setIsConnecting] = useState(false);
   const [showTokens, setShowTokens] = useState(false);
+  const { showToast } = useToast();
 
   const handleConnect = async () => {
     if (!accessToken || !publicKey) {
-      alert('Por favor, preencha o Access Token e a Public Key');
+      showToast('error', 'Por favor, preencha o Access Token e a Public Key');
       return;
     }
 
@@ -30,6 +36,7 @@ export default function MercadoPagoIntegration({ settings, onUpdateSettings }: M
           publicKey
         }
       });
+      showToast('success', 'Mercado Pago conectado com sucesso!');
       setIsConnecting(false);
     }, 2000);
   };
@@ -45,10 +52,7 @@ export default function MercadoPagoIntegration({ settings, onUpdateSettings }: M
     });
     setAccessToken('');
     setPublicKey('');
-  };
-
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
+    showToast('info', 'Mercado Pago desconectado');
   };
 
   const generatePaymentLink = (clientName: string, amount: number) => {
@@ -64,50 +68,52 @@ export default function MercadoPagoIntegration({ settings, onUpdateSettings }: M
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center space-x-3">
-        <div className="p-2 bg-blue-100 rounded-lg">
-          <CreditCard className="w-6 h-6 text-blue-600" />
+        <div className="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
+          <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+          </svg>
         </div>
         <div>
-          <h3 className="text-lg font-semibold text-gray-900">Mercado Pago</h3>
-          <p className="text-sm text-gray-600">Integração para pagamentos online</p>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Mercado Pago</h3>
+          <p className="text-sm text-gray-600 dark:text-gray-400">Integração para pagamentos online</p>
         </div>
       </div>
 
       {/* Status */}
-      <div className={`p-4 rounded-lg border ${
+      <Card className={`${
         settings.mercadoPago?.enabled 
-          ? 'bg-green-50 border-green-200' 
-          : 'bg-gray-50 border-gray-200'
+          ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800' 
+          : 'bg-gray-50 dark:bg-gray-900/50 border-gray-200 dark:border-gray-700'
       }`}>
         <div className="flex items-center space-x-2">
           {settings.mercadoPago?.enabled ? (
             <>
-              <CheckCircle className="w-5 h-5 text-green-600" />
-              <span className="text-green-800 font-medium">Conectado</span>
+              <CheckCircleIcon className="w-5 h-5 text-green-600" />
+              <span className="text-green-800 dark:text-green-300 font-medium">Conectado</span>
             </>
           ) : (
             <>
-              <AlertCircle className="w-5 h-5 text-gray-600" />
-              <span className="text-gray-800 font-medium">Desconectado</span>
+              <ExclamationTriangleIcon className="w-5 h-5 text-gray-600" />
+              <span className="text-gray-800 dark:text-gray-300 font-medium">Desconectado</span>
             </>
           )}
         </div>
         {settings.mercadoPago?.enabled && (
-          <p className="text-sm text-green-700 mt-1">
+          <p className="text-sm text-green-700 dark:text-green-400 mt-1">
             Pronto para processar pagamentos
           </p>
         )}
-      </div>
+      </Card>
 
       {!settings.mercadoPago?.enabled ? (
         /* Configuração */
         <div className="space-y-4">
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <Card className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
             <div className="flex items-start space-x-3">
-              <Settings className="w-5 h-5 text-blue-600 mt-0.5" />
+              <SettingsIcon className="w-5 h-5 text-blue-600 mt-0.5" />
               <div>
-                <h4 className="font-medium text-blue-900">Como configurar</h4>
-                <ol className="text-sm text-blue-800 mt-2 space-y-1 list-decimal list-inside">
+                <h4 className="font-medium text-blue-900 dark:text-blue-300">Como configurar</h4>
+                <ol className="text-sm text-blue-800 dark:text-blue-400 mt-2 space-y-1 list-decimal list-inside">
                   <li>Acesse sua conta no <a href="https://www.mercadopago.com.br/developers" target="_blank" rel="noopener noreferrer" className="underline">Mercado Pago Developers</a></li>
                   <li>Vá em "Suas integrações" → "Criar aplicação"</li>
                   <li>Copie o Access Token e Public Key</li>
@@ -115,141 +121,139 @@ export default function MercadoPagoIntegration({ settings, onUpdateSettings }: M
                 </ol>
               </div>
             </div>
-          </div>
+          </Card>
 
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Access Token
-              </label>
-              <div className="relative">
-                <input
-                  type={showTokens ? "text" : "password"}
-                  value={accessToken}
-                  onChange={(e) => setAccessToken(e.target.value)}
-                  placeholder="APP_USR-..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowTokens(!showTokens)}
-                  className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600"
-                >
+              <div className="flex justify-between items-center mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Access Token</label>
+                <Button type="button" variant="ghost" size="sm" onClick={() => setShowTokens(!showTokens)}>
                   {showTokens ? '🙈' : '👁️'}
-                </button>
+                </Button>
               </div>
+              <Input
+                type={showTokens ? "text" : "password"}
+                value={accessToken}
+                onChange={(e) => setAccessToken(e.target.value)}
+                placeholder="APP_USR-..."
+              />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Public Key
-              </label>
-              <input
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Public Key</label>
+              <Input
                 type={showTokens ? "text" : "password"}
                 value={publicKey}
                 onChange={(e) => setPublicKey(e.target.value)}
                 placeholder="APP_USR-..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
 
-            <button
+            <Button
               onClick={handleConnect}
               disabled={isConnecting || !accessToken || !publicKey}
-              className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+              className="w-full"
             >
               {isConnecting ? (
                 <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  <span>Conectando...</span>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Conectando...
                 </>
               ) : (
                 <>
-                  <CreditCard className="w-4 h-4" />
-                  <span>Conectar Mercado Pago</span>
+                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                  </svg>
+                  Conectar Mercado Pago
                 </>
               )}
-            </button>
+            </Button>
           </div>
         </div>
       ) : (
         /* Painel Conectado */
         <div className="space-y-4">
           {/* Funcionalidades */}
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <h4 className="font-medium text-gray-900 mb-3">Funcionalidades Disponíveis</h4>
+          <Card>
+            <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-3">Funcionalidades Disponíveis</h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg">
-                <CheckCircle className="w-5 h-5 text-green-600" />
-                <span className="text-sm text-green-800">Links de pagamento</span>
+              <div className="flex items-center space-x-3 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                <CheckCircleIcon className="w-5 h-5 text-green-600" />
+                <span className="text-sm text-green-800 dark:text-green-300">Links de pagamento</span>
               </div>
-              <div className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg">
-                <CheckCircle className="w-5 h-5 text-green-600" />
-                <span className="text-sm text-green-800">Cobrança por WhatsApp</span>
+              <div className="flex items-center space-x-3 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                <CheckCircleIcon className="w-5 h-5 text-green-600" />
+                <span className="text-sm text-green-800 dark:text-green-300">Cobrança por WhatsApp</span>
               </div>
-              <div className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg">
-                <CheckCircle className="w-5 h-5 text-green-600" />
-                <span className="text-sm text-green-800">Pagamento via PIX</span>
+              <div className="flex items-center space-x-3 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                <CheckCircleIcon className="w-5 h-5 text-green-600" />
+                <span className="text-sm text-green-800 dark:text-green-300">Pagamento via PIX</span>
               </div>
-              <div className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg">
-                <CheckCircle className="w-5 h-5 text-green-600" />
-                <span className="text-sm text-green-800">Cartão de crédito</span>
+              <div className="flex items-center space-x-3 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                <CheckCircleIcon className="w-5 h-5 text-green-600" />
+                <span className="text-sm text-green-800 dark:text-green-300">Cartão de crédito</span>
               </div>
             </div>
-          </div>
+          </Card>
 
           {/* Exemplo de uso */}
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-            <h4 className="font-medium text-gray-900 mb-3">Exemplo de Link de Pagamento</h4>
+          <Card className="bg-gray-50 dark:bg-gray-900/50">
+            <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-3">Exemplo de Link de Pagamento</h4>
             <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 bg-white rounded border">
+              <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700">
                 <div>
-                  <p className="font-medium">João Silva - R$ 89,90</p>
-                  <p className="text-sm text-gray-600">Mensalidade Internet</p>
+                  <p className="font-medium text-gray-900 dark:text-gray-100">João Silva - R$ 89,90</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Mensalidade Internet</p>
                 </div>
                 <div className="flex space-x-2">
-                  <button
-                    onClick={() => copyToClipboard(generatePaymentLink('João Silva', 89.90))}
-                    className="p-2 text-gray-600 hover:text-gray-800"
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      const link = generatePaymentLink('João Silva', 89.90);
+                      navigator.clipboard.writeText(link);
+                      showToast('success', 'Link copiado!');
+                    }}
                     title="Copiar link"
                   >
-                    <Copy className="w-4 h-4" />
-                  </button>
-                  <button
+                    📋
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={() => window.open(generatePaymentLink('João Silva', 89.90), '_blank')}
-                    className="p-2 text-blue-600 hover:text-blue-800"
                     title="Abrir link"
                   >
-                    <ExternalLink className="w-4 h-4" />
-                  </button>
+                    🔗
+                  </Button>
                 </div>
               </div>
             </div>
-          </div>
+          </Card>
 
           {/* Configurações */}
-          <div className="flex justify-between items-center pt-4 border-t border-gray-200">
+          <div className="flex justify-between items-center pt-4 border-t border-gray-200 dark:border-gray-700">
             <div>
-              <p className="text-sm font-medium text-gray-900">Mercado Pago conectado</p>
-              <p className="text-xs text-gray-600">Credenciais configuradas</p>
+              <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Mercado Pago conectado</p>
+              <p className="text-xs text-gray-600 dark:text-gray-400">Credenciais configuradas</p>
             </div>
-            <button
+            <Button
               onClick={handleDisconnect}
-              className="px-4 py-2 text-red-600 border border-red-300 rounded-lg hover:bg-red-50"
+              variant="secondary"
             >
               Desconectar
-            </button>
+            </Button>
           </div>
         </div>
       )}
 
       {/* Avisos */}
-      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+      <Card className="bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800">
         <div className="flex items-start space-x-3">
-          <AlertCircle className="w-5 h-5 text-yellow-600 mt-0.5" />
+          <ExclamationTriangleIcon className="w-5 h-5 text-yellow-600 mt-0.5" />
           <div>
-            <h4 className="font-medium text-yellow-900">Importante</h4>
-            <ul className="text-sm text-yellow-800 mt-1 space-y-1">
+            <h4 className="font-medium text-yellow-900 dark:text-yellow-300">Importante</h4>
+            <ul className="text-sm text-yellow-800 dark:text-yellow-400 mt-1 space-y-1">
               <li>• Mantenha suas credenciais seguras</li>
               <li>• Use sempre o ambiente de produção para clientes reais</li>
               <li>• Verifique as taxas do Mercado Pago</li>
@@ -257,7 +261,9 @@ export default function MercadoPagoIntegration({ settings, onUpdateSettings }: M
             </ul>
           </div>
         </div>
-      </div>
+      </Card>
     </div>
   );
-}
+};
+
+export default MercadoPagoIntegration;

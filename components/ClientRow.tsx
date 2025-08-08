@@ -116,7 +116,7 @@ const ClientRow: React.FC<ClientRowProps> = ({ client, onEdit, onDelete, onRenew
 
   const generatePaymentLink = () => {
     if (!mercadoPagoEnabled) {
-      alert('Configure o Mercado Pago nas configurações primeiro');
+      showToast('error', 'Configure o Mercado Pago nas configurações primeiro');
       return;
     }
     
@@ -129,7 +129,7 @@ const ClientRow: React.FC<ClientRowProps> = ({ client, onEdit, onDelete, onRenew
     
     // Copiar para clipboard
     navigator.clipboard.writeText(paymentUrl).then(() => {
-      alert('Link de pagamento copiado para a área de transferência!');
+      showToast('success', 'Link de pagamento copiado para a área de transferência!');
     });
   };
 
