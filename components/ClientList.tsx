@@ -7,7 +7,6 @@ interface ClientListProps {
   onEdit: (client: ClientWithStatus) => void;
   onDelete: (client: ClientWithStatus) => void;
   onRenewRequest: (client: ClientWithStatus) => void;
-  mercadoPagoEnabled?: boolean;
   
   // Drag and Drop props
   dropTargetId: string | null;
@@ -22,7 +21,6 @@ const ClientList: React.FC<ClientListProps> = ({
   onEdit, 
   onDelete, 
   onRenewRequest,
-  mercadoPagoEnabled,
   ...dndProps 
 }) => {
   return (
@@ -50,7 +48,6 @@ const ClientList: React.FC<ClientListProps> = ({
                 onEdit={onEdit}
                 onDelete={onDelete}
                 onRenewRequest={onRenewRequest}
-                mercadoPagoEnabled={mercadoPagoEnabled}
                 isDropTarget={dndProps.dropTargetId === client.id}
                 onDragStart={() => dndProps.onDragStart(client)}
                 onDragEnd={dndProps.onDragEnd}

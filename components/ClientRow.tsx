@@ -18,7 +18,6 @@ interface ClientRowProps {
   onDragEnter: (e: React.DragEvent) => void;
   onDragLeave: (e: React.DragEvent) => void;
   onDrop: () => void;
-  mercadoPagoEnabled?: boolean;
 }
 
 const statusClasses = {
@@ -27,7 +26,7 @@ const statusClasses = {
   [ClientStatus.Vencido]: 'bg-red-100 text-red-800 border-red-200 dark:bg-red-500/20 dark:text-red-300 dark:border-red-500/30',
 };
 
-const ClientRow: React.FC<ClientRowProps> = ({ client, onEdit, onDelete, onRenewRequest, isDropTarget, mercadoPagoEnabled = false, ...dragProps }) => {
+const ClientRow: React.FC<ClientRowProps> = ({ client, onEdit, onDelete, onRenewRequest, isDropTarget, ...dragProps }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [isReminderModalOpen, setReminderModalOpen] = useState(false);
   const [reminderMessage, setReminderMessage] = useState('');
@@ -114,25 +113,6 @@ const ClientRow: React.FC<ClientRowProps> = ({ client, onEdit, onDelete, onRenew
     }
   };
 
-  const generatePaymentLink = () => {
-    if (!mercadoPagoEnabled) {
-      showToast('error', 'Configure o Mercado Pago nas configurações primeiro');
-      return;
-    }
-    
-    const baseUrl = 'https://www.mercadopago.com.br/checkout/v1/redirect';
-    const params = new URLSearchParams({
-      'pref_id': `client_${client.id}_${Date.now()}`,
-      'source': 'link'
-    });
-    const paymentUrl = `${baseUrl}?${params.toString()}`;
-    
-    // Copiar para clipboard
-    navigator.clipboard.writeText(paymentUrl).then(() => {
-      showToast('success', 'Link de pagamento copiado para a área de transferência!');
-    });
-  };
-
 
   return (
     <>
@@ -205,21 +185,6 @@ const ClientRow: React.FC<ClientRowProps> = ({ client, onEdit, onDelete, onRenew
                   </Button>
               </>
             )}
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={generatePaymentLink}
-              className={`${
-                mercadoPagoEnabled 
-                  ? 'text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300' 
-                  : 'text-gray-400 cursor-not-allowed dark:text-gray-500'
-              }`}
-              title={mercadoPagoEnabled ? "Gerar link de pagamento" : "Configure o Mercado Pago primeiro"}
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-              </svg>
-            </Button>
             <Button variant="ghost" size="sm" onClick={() => onRenewRequest(client)} title="Renovar por 30 dias">
               <RenewIcon />
             </Button>
