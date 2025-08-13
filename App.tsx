@@ -38,6 +38,7 @@ const AppContent: React.FC = () => {
   const [showClientForm, setShowClientForm] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
   
   // Client management
   const [clientToEdit, setClientToEdit] = useState<Partial<Client> | null>(null);
@@ -164,6 +165,20 @@ const AppContent: React.FC = () => {
     event.target.value = '';
   };
 
+  const handleDragStart = (client: ClientWithStatus) => {
+    setDraggedClient(client);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedClient(null);
+    setDropTargetId(null);
+  };
+
+  const handleDrop = (targetClient: ClientWithStatus) => {
+    if (!draggedClient || draggedClient.id === targetClient.id) return;
+
+    const reorderedClients = [...clients];
+    const draggedIndex = reorderedClients.findIndex(c => c.id === draggedClient.id);
     const targetIndex = reorderedClients.findIndex(c => c.id === targetClient.id);
 
     if (draggedIndex !== -1 && targetIndex !== -1) {
@@ -372,8 +387,6 @@ const AppContent: React.FC = () => {
         onClose={() => setShowHistory(false)}
         history={history}
       />
-
-      <SettingsModal
 
       <ConfirmModal
         isOpen={showDeleteConfirm}
