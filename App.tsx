@@ -12,7 +12,6 @@ import SetupScreen from './components/SetupScreen';
 import Dashboard from './components/Dashboard';
 import ClientFormModal from './components/ClientFormModal';
 import HistoryModal from './components/HistoryModal';
-import SettingsModal from './components/SettingsModal';
 import ConfirmModal from './components/ui/ConfirmModal';
 import ClientGrid from './components/ClientGrid';
 import ClientTable from './components/ClientTable';
@@ -38,7 +37,6 @@ const AppContent: React.FC = () => {
   // Modal states
   const [showClientForm, setShowClientForm] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [showHistory, setShowHistory] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   
   // Client management
@@ -166,21 +164,6 @@ const AppContent: React.FC = () => {
     event.target.value = '';
   };
 
-  // Drag and Drop handlers
-  const handleDragStart = (client: ClientWithStatus) => {
-    setDraggedClient(client);
-  };
-
-  const handleDragEnd = () => {
-    setDraggedClient(null);
-    setDropTargetId(null);
-  };
-
-  const handleDrop = (targetClient: ClientWithStatus) => {
-    if (!draggedClient || draggedClient.id === targetClient.id) return;
-
-    const reorderedClients = [...clients];
-    const draggedIndex = reorderedClients.findIndex(c => c.id === draggedClient.id);
     const targetIndex = reorderedClients.findIndex(c => c.id === targetClient.id);
 
     if (draggedIndex !== -1 && targetIndex !== -1) {
@@ -391,13 +374,6 @@ const AppContent: React.FC = () => {
       />
 
       <SettingsModal
-        isOpen={showSettings}
-        onClose={() => setShowSettings(false)}
-        settings={settings}
-        onSettingsChange={setSettings}
-        onManualBackup={handleManualBackup}
-        onRestoreBackup={handleRestoreFromFile}
-      />
 
       <ConfirmModal
         isOpen={showDeleteConfirm}
